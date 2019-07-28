@@ -9,6 +9,7 @@
 import Foundation
 
 
+
 final class GoogleBooksService {
     
     static let shared = GoogleBooksService()
@@ -39,38 +40,52 @@ final class GoogleBooksService {
             if let data = dat {
                 
                 do {
-                    
+                    //JSONDecoder not working
+//                    let bookObject = try JSONDecoder().decode(BookResults.self, from: data)
+//                    let books = bookObject.items
+//                    completion(books)
+//
+//                } catch let decodeError {
+//                    print("Decode Error: \(decodeError.localizedDescription)")
+//                    completion([])
+//                    return
+//                }
+//
+//            }
+//        }.resume()
+        
+        //Json Serialization:
                     let booksJSON = try JSONSerialization.jsonObject(with: data, options: []) as! [String:Any]
                     if let items = booksJSON["items"] as? [[String:Any]] {
                         var books = [Book]()
-                        
+
                         for item in items {
                             DispatchQueue.main.async{
                                 let book = Book(from: item)
-                                if(book.title != ""){
+                                if(book.info.title != ""){
                                     books.append(book)
                                 }
                             }
-                            
-                            
+
+
                         }
                         DispatchQueue.main.async {
                             completion(books)
                         }
-                        
-                        
+
+
                     }
-                    
-                    
+
+
                 } catch {
                     print("Couldn't Serialiaze Object: \(error.localizedDescription)")
                     DispatchQueue.main.async {
                         completion([])
                     }
                 }
-                
+
             }
-            
+
             }.resume()
         
     }

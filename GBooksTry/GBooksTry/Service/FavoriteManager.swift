@@ -23,26 +23,26 @@ final class FavoriteManager {
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
-    lazy var context = appDelegate.persistentContainer.viewContext
+
     
-//    var context: NSManagedObjectContext {
-//        return persistentContainer.viewContext
-//    }
-    
+    var context: NSManagedObjectContext {
+       return persistentContainer.viewContext
+    }
+//
 //    PersistentContainer
-//    lazy var persistentContainer: NSPersistentContainer = {
-//        objc_sync_enter(self)
-//
-//        let container = NSPersistentContainer(name: "GBooksTry")
-//
-//        container.loadPersistentStores(completionHandler: { (store, err) in
-//            if let error = err {
-//                fatalError()
-//            }
-//        })
-//        objc_sync_exit(self)
-//        return container
-//    }()
+    lazy var persistentContainer: NSPersistentContainer = {
+        objc_sync_enter(self)
+
+        let container = NSPersistentContainer(name: "GBooksTry")
+
+        container.loadPersistentStores(completionHandler: { (store, err) in
+            if let error = err {
+                fatalError()
+            }
+        })
+        objc_sync_exit(self)
+        return container
+    }()
     
     func saveBook(_ book: Book) {
         
@@ -56,16 +56,20 @@ final class FavoriteManager {
         
         
         
-        nBook.setValue(book.title, forKey: "title")
-        nBook.setValue(book.authors, forKey: "authors")
-        nBook.setValue(book.description, forKey: "desc")
-        nBook.setValue(book.price, forKey: "price")
-        nBook.setValue(book.rating, forKey: "rating")
+        nBook.setValue(book.info.title as NSString, forKey: "title")
+        nBook.setValue(book.info.authors.joined(separator: ", "), forKey: "authors")
+        nBook.setValue(book.info.description as NSString, forKey: "desc")
+        if book.price != nil {
+            nBook.setValue(book.price, forKey: "price")
+        }
+        if book.info.rating != nil {
+            nBook.setValue(book.info.rating!, forKey: "rating")
+        }
         if book.coverUrl != nil{
-            nBook.setValue(book.coverUrl?.absoluteString, forKey: "coverUrl")
+            nBook.setValue(book.coverUrl!.absoluteString as NSString, forKey: "coverUrl")
         }
         if book.thumbUrl != nil{
-            nBook.setValue(book.thumbUrl?.absoluteString, forKey: "thumbUrl")
+            nBook.setValue(book.thumbUrl!.absoluteString as NSString, forKey: "thumbUrl")
         }
         
         print("Saved Book: \(nBook.value(forKey: "title") ?? "Nil")")
@@ -84,7 +88,7 @@ final class FavoriteManager {
             print("Stored Book count: \(books.count)")
             return books
         } catch {
-            print("Couldn't fetch pizzas: \(error.localizedDescription)")
+            print("Couldn't load books: \(error.localizedDescription)")
         }
         
         
@@ -92,6 +96,27 @@ final class FavoriteManager {
         
     }
 
+    
+    func remove(book: Book) {
+        
+        let fetchRequest = NSFetchRequest<Favorites>(entityName: "Favorites")
+        let predicate = NSPredicate(format: "title==%@", book.info.title)
+        
+        fetchRequest.predicate = predicate
+        var favBooks = [Favorites]()
+        do {
+            favBooks = try context.fetch(fetchRequest)
+        } catch {
+            print("Couldn't fetch books: \(error.localizedDescription)")
+        }
+        
+        for fav in favBooks {
+            print("Deleted book: \(fav.title!)")
+            context.delete(fav)
+        }
+        
+        saveContext()
+    }
     
     private func saveContext() {
         do {

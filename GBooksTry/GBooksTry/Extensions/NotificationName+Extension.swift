@@ -11,4 +11,6 @@ import Foundation
 extension Notification.Name {
     static let SearchedNotification = Notification.Name.init("Searched")
     static let RecentNotification = Notification.Name("RecentNotification")
+    static let FavoritesNotification = Notification.Name("Favorite")
+    static let ClearedNotification = Notification.Name("Cleared")
 }

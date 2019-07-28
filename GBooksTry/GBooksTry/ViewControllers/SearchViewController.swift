@@ -16,8 +16,6 @@ class SearchViewController: UIViewController {
     
     let searchController = UISearchController(searchResultsController: nil)
     
-    let viewModel = ViewModel.shared
-    
     
     var search: String = ""
     
@@ -26,10 +24,12 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        
         setupSearch()
         createSearchBar()
         createSearchObserver()
-        
+        searchTable.rowHeight = UITableView.automaticDimension
+        searchTable.estimatedRowHeight = 80
     }
     
     private func createSearchObserver() {
@@ -46,7 +46,14 @@ class SearchViewController: UIViewController {
                 self.activityView.isHidden = true
             }
             self.searchTable.reloadData()
+            self.view.layoutIfNeeded()
         }
+        NotificationCenter.default.addObserver(forName: Notification.Name.ClearedNotification, object: nil, queue: .main) { [unowned self] _ in
+            
+            self.searchTable.reloadData()
+            self.view.layoutIfNeeded()
+        }
+        
     }
     
     
@@ -98,9 +105,9 @@ extension SearchViewController: UITableViewDataSource {
 }
 
 extension SearchViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80
-    }
+//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+//        return 80
+//    }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
@@ -119,10 +126,13 @@ extension SearchViewController: UISearchResultsUpdating {
         guard let search = searchController.searchBar.text else {
             return
         }
-        
-        viewModel.getSearched(searched: search)
-        
-        
+        if search != "" {
+
+            viewModel.getSearched(searched: search)
+        } else {
+            print("cleared")
+            viewModel.clearedSearch()
+        }
         
     }
 }
